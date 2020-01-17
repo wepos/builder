@@ -1,0 +1,6 @@
+.viscode
+*.json
+test*
+test*.*
+*.o
+ojects
