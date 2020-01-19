@@ -19,21 +19,19 @@ public:
 		clock_gettime(CLOCK_REALTIME, &timer);
 	}
 	void	print_sec(char *text) {
-		printf("%s %ld\n", text, (long)dbg_timer_point());
+		printf("%s %ld\ns", text, (long)dbg_timer_point());
 	}
 	void	print_msec(char *text) {
-		printf("%s %ld\n", text, (long)dbg_timer_point_ms());
+		printf("%s %lfs\n", text, (double)dbg_timer_point_ms() / 1000);
 	}
 	void	print_mksec(char *text) {
-		printf("%s %ld\n", text, (long)dbg_timer_point_mk());
+		printf("%s %lfs\n", text, (double)dbg_timer_point_mk() / 1000000);
 	}
-
 private:
 	t_tspec	timer;
 
 	int		dbg_timer_checkp(t_tspec *ctimer)
 	{
-
 		if (clock_gettime(CLOCK_REALTIME, ctimer) < 0)
 			return (-1);
 		if (dbg_timer_sub(ctimer, &timer) < 0)
