@@ -12,9 +12,10 @@
 #include <sys/types.h>
 #include <stdio.h>
 #include <dirent.h>
-
+#include <unistd.h>
 
 #define RED "\033[31m" 	// red color message
+#define MOD (mode_t)0777
 
 enum ERRORS {	 		// error code
 	OK,
@@ -23,7 +24,8 @@ enum ERRORS {	 		// error code
 	BAD_IFSTREAM,
 	FAIL_OPEN_DIR,
 	UNKNOWN_TYPE,
-	MAKE_DIR
+	MAKE_DIR,
+	CHANGE_DIR,
 };
 
 enum TYPE_FILE {
@@ -44,6 +46,7 @@ static void 	error_processing(const int code, const std::string& message);
 struct f_info
 {
 	std::string	extens;
+	size_t		path;
 	long 		mtime;
 	TYPE_FILE	type;
 };
@@ -111,10 +114,16 @@ public:
 	DIR			*open_dir(const std::string& path) const;
 	bool 		tray_open_dir(const std::string& path) const;
 
+	/* Returns a file path string to a specified path */
+	void		get_paths_files(const std::string& path,
+								const std::string& worc_space,
+								std::string& paths) const;
 
 	std::vector<std::string> get_files_dir(const std::string& dir) const;
-	/*HOME dir 437193 mks */
-	void	 	get_recursion_files_dir(	const std::string& path,
+	
+	/* HOME dir 437193 mks
+	Returns the stat structure for all files in the directory */
+	void	 	get_recursion_files_dir(const std::string& path,
 										std::vector<std::string>& vec) const;
 
 	std::map<std::string, struct stat> get_fstat_dir(const std::string& path) const;
@@ -127,13 +136,17 @@ public:
 										std::map<std::string, struct stat>& map) const;
 
 	void		get_recursion_finfo_dir(const std::string& path,
+										const std::set<std::string>& ignore,
 										std::map<std::string, f_info>& map,
 										char fl) const;
 
 	TYPE_FILE	get_filetype(mode_t mode) const;
 
 	void 		make_dir(	const std::string& name,
-							const mode_t mode);
+							const mode_t mode) const;
+
+	void		change_dir(const std::string& path) const;
+
 
 private:
 	inline bool	is_dots(char *name) const;

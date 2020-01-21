@@ -1,6 +1,6 @@
 {
 	SOURCE = Libft/src;
-	COMPILED_FILES = ;
+	COMPILED_FILES = pizda.c iii.c;
 	IGNORE_FILE = ;
 	INCLUDES_DIR = Libft/includes;
 	COMPILER_OBJ = gcc -g;

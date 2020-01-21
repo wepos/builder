@@ -6,7 +6,7 @@
 /*   By: fnancy <fnancy@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2020/01/19 13:54:20 by fnancy            #+#    #+#             */
-/*   Updated: 2020/01/21 13:13:35 by fnancy           ###   ########.fr       */
+/*   Updated: 2020/01/21 15:00:15 by fnancy           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -17,6 +17,7 @@
 
 #include <unistd.h>
 #include "file_handling.h"
+#include "build.h"
 
 #define NAME_SET	"/settings"
 
@@ -35,28 +36,14 @@ enum	Keys{
 
 using namespace std;
 
-struct buildlist
-{
-	std::string name;
-	std::string sources;
-	std::string inclides;
-	std::string compiler;
-	std::string fl_file;
-	std::string fl_program;
-	std::string out_dir;
-	std::vector<string> src_files;
-	std::vector<string> src_ignore_files;
-	std::vector<string> inc_files;
-	std::vector<string> inc_ignore_files;
-};
-
-
 class Parser
 {
 private:
 	std::vector<buildlist>		links;
 	std::vector<std::string>	get_setting_words();
 	std::vector<string>			get_blocks();
+	void						bzero_node(buildlist *node);
+	int							check_syntax(std::string& str, char *sp);
 	int 						check_keywords(char *str);
 	int							fill_node(char *str, buildlist *node, int res);
 	int							parse_blocks(std::vector<string>& block, buildlist *node);
