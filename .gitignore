@@ -1,6 +1,12 @@
-.viscode
+.vscode
 *.json
 test*
 test*.*
 *.o
+*.a
 ojects
+42sh
+.DS_Store
+a.out
+.gitignore
+lib
