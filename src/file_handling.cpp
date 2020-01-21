@@ -1,11 +1,12 @@
 #include "file_handling.h"
 
+
 void print_err_message(const std::string& err, const std::string& message="")
 {
 	std::cout << RED << err << ": " << message << std::endl;
 }
 
-static void error_processing(
+void error_processing(
 	const int code,
 	const std::string& message="")
 {
@@ -27,8 +28,12 @@ static void error_processing(
 			print_err_message("Failed make directory", message); break;
 		case CHANGE_DIR:
 			print_err_message("Fail directory change", message); break;
+		case LSTAT:
+			print_err_message("It was not possible to obtain information about the file", message); break;
+		case WRONG_KEY:
+			print_err_message("Wrong key", message); break;
 	}
-	std::cout << RED << "ERROR CODE: " << code << std::endl;
+	std::cout << RED << "errno: " << errno << std::endl;
 	exit(code);
 }
 
@@ -189,22 +194,22 @@ void	File_handling::get_paths_files(
 	const std::string& worc_space,
 	std::string& paths) const
 {
-	DIR				*dir = opendir(path.c_str());
+	DIR				*dir = open_dir(path.c_str());
 	struct dirent 	*entry;
 	struct stat		st;
 	int c = 0;
 	if (!paths.size())
-		paths = std::string("-I") + worc_space + "/" + path ;
+		paths = std::string(" -I") + worc_space + '/' + path + '\t' ;
 	while ((entry = readdir(dir)) != 0)
 	{
 		if (++c < 3)
 			continue ;
-		std::string tmp(path + "/" + entry->d_name);
+		std::string tmp(path + '/' + entry->d_name);
 		lstat(tmp.c_str(), &st);
 		if (get_filetype(st.st_mode) == TYPE_FILE::DIRICTORY)
 		{
 			get_paths_files(tmp, worc_space, paths);
-			paths += std::string(" -I") + worc_space + "/" + tmp;
+			paths += std::string(" -I") + worc_space + '/' + tmp + '\t';
 		}
 	}
 	closedir(dir);
@@ -225,7 +230,7 @@ void 	File_handling::get_recursion_files_dir(
 			continue ;
 		std::string tmp(path + '/' + entry->d_name);
 		lstat(tmp.c_str(), &st);
-		if (get_filetype(st.st_mode) == TYPE_FILE::DIRICTORY && tray_open_dir(tmp))
+		if (get_filetype(st.st_mode) == TYPE_FILE::DIRICTORY && try_open_dir(tmp))
 			get_recursion_files_dir(tmp, vec);
 		vec.push_back(tmp);
 	}
@@ -279,7 +284,7 @@ void 	File_handling::get_fstat_dir(
 	closedir(dir);
 }
 
-bool 	File_handling::tray_open_dir(
+bool 	File_handling::try_open_dir(
 	const std::string& path) const
 {
 	DIR	*dir = opendir(path.c_str());
@@ -308,7 +313,7 @@ void	File_handling::get_recursion_fstat_dir(
 		std::string tmp(path + "/" + entry->d_name);
 		struct stat		cpy;
 		lstat(tmp.c_str(), &st);
-		if (get_filetype(st.st_mode) == TYPE_FILE::DIRICTORY && tray_open_dir(tmp))
+		if (get_filetype(st.st_mode) == TYPE_FILE::DIRICTORY && try_open_dir(tmp))
 			get_recursion_fstat_dir(tmp, map);
 		map[tmp] = *(struct stat*)memmove(&cpy, &st, size_st);
 	}
@@ -338,7 +343,7 @@ void	File_handling::get_recursion_finfo_dir(
 		std::string tmp(path + "/" + entry->d_name);
 		struct stat		cpy;
 		lstat(tmp.c_str(), &st);
-		if ((t = get_filetype(st.st_mode)) == TYPE_FILE::DIRICTORY && tray_open_dir(tmp))
+		if ((t = get_filetype(st.st_mode)) == TYPE_FILE::DIRICTORY && try_open_dir(tmp))
 			get_recursion_finfo_dir(tmp, ignore, map, fl);
 		if (fl == 's')
 			set_map(map, tmp, &st, t);
@@ -402,12 +407,13 @@ void	 File_handling::make_dir(
 	const std::string& name,
 	const mode_t mode) const
 {
+	if (try_open_dir(name))
+		return ;
 	std::string cpy = name;
 	char *ptr = strtok((char*)cpy.c_str(), "/");;
-	char d[1000];
-	bzero(d, 1000);
-	int n = 0;
-	int c = 0;
+	char d[KBIT];
+	bzero(d, KBIT);
+	int n = 0, c = 0;
 	while(ptr != NULL)
 	{
 		int len = strlen(ptr);
@@ -418,8 +424,8 @@ void	 File_handling::make_dir(
 		n += len + 1;
 		ptr = strtok(NULL, "/");
 	}
-	// if (!c)
-	// 	error_processing(MAKE_DIR, d);
+	if (!c)
+		error_processing(MAKE_DIR, d);
 }
 
 void	File_handling::change_dir(
@@ -427,4 +433,36 @@ void	File_handling::change_dir(
 {
 	if (chdir(path.c_str()) == -1)
 		error_processing(CHANGE_DIR, path);
+}
+
+void		File_handling::get_finfo(
+	const std::vector<std::string>& src_files,
+	const std::set<std::string>& ignore,
+	std::map<std::string, f_info>& map) const
+{
+	struct stat		st;
+
+	for (const auto& file : src_files)
+	{
+		if (ignore.find(file) != end(ignore))
+			continue ;
+		if (lstat(file.c_str(), &st) == -1)
+			error_processing(LSTAT, file);
+		set_map(map, file, &st, TYPE_FILE::REGULAR);
+	}
+}
+
+void		File_handling::get_finfo_o(
+	const std::vector<std::string>& src_files,
+	const std::string& obj,
+	std::map<std::string, f_info>& map) const
+{
+	struct stat		st;
+	
+	for (const auto& file : src_files)
+	{
+		if (lstat((obj + file).c_str(), &st) == -1)
+			error_processing(LSTAT, file);
+		set_map_o(map, file, &st, TYPE_FILE::REGULAR);
+	}
 }

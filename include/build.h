@@ -15,28 +15,57 @@ struct buildlist
 	std::string compile_obj;
 	std::string compile_program;
 	std::string out_dir;
+};
+
+struct t_param
+{
 	bool show;
+	bool re;
+	bool clear;
+	bool ca;
 };
 
 class Builder
 {
-	buildlist build;
-	File_handling fh;
 	std::map<std::string, f_info> src;
 	std::map<std::string, f_info> obj;
-	std::vector<std::string> task;
-	std::string filecompile;
-	std::string progcompile;
-	const std::string work_space;
-	const std::string includes;
-	int fl = 0;
+	const std::string object;
+	std::string back;
+	std::string out_dir;
+	std::string file_compile;
+	std::string prog_compile;
+	std::string work_space;
+	std::string includes;
+	t_param param;
+	File_handling fh;
+	bool fl = false;		// flag that changes the state if at least one file was recompiled
 	
 public:
-	Builder(const char *path, const std::string& inc)
-	: work_space(path), includes(inc)
-	{};
+	Builder(const buildlist& task, t_param& pr) : object(OBJ)
+	{
+		src[task.sources] = {"", 0, 0, TYPE_FILE::DIRICTORY};
+		if (!(fh.try_open_dir(task.sources)))
+			error_processing(FAIL_OPEN_DIR, task.sources);
+		fh.get_recursion_finfo_dir(task.sources, task.src_ignore_files, src, 's');
+		fh.get_finfo(task.src_files, task.src_ignore_files, src);
+		fh.get_recursion_finfo_dir(object + task.sources, std::set<std::string>(), obj, 'o');
+		fh.get_finfo_o(task.src_files, object, obj);
+		back = "";
+		out_dir = task.out_dir;
+		if (out_dir.size()) // проверяем наличие директории
+		{
+			back = "../";
+			fh.make_dir(out_dir, MOD);
+		}
+		char pwd[KBIT];
+		getcwd(pwd, KBIT);
+		work_space = pwd;
+		fh.get_paths_files(task.includes, work_space, includes);
+		prog_compile = task.compile_program + " ";
+		file_compile = task.compile_obj + " ";
+		param = pr;
+	};
 
-	void	set_buildlist();
 	void	make();
 
 private:

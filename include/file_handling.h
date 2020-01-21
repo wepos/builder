@@ -16,6 +16,7 @@
 
 #define RED "\033[31m" 	// red color message
 #define MOD (mode_t)0777
+#define KBIT 1024
 
 enum ERRORS {	 		// error code
 	OK,
@@ -26,6 +27,8 @@ enum ERRORS {	 		// error code
 	UNKNOWN_TYPE,
 	MAKE_DIR,
 	CHANGE_DIR,
+	LSTAT,
+	WRONG_KEY
 };
 
 enum TYPE_FILE {
@@ -40,8 +43,9 @@ enum TYPE_FILE {
 };
 				/* Return enum TYPE_FILE */
 TYPE_FILE		get_filetype(mode_t mode);
+
 				/* print error code and message. concludes program */
-static void 	error_processing(const int code, const std::string& message);
+void 			error_processing(const int code, const std::string& message);
 
 struct f_info
 {
@@ -112,7 +116,7 @@ public:
 		the DIR to be closed after use.
 	*/
 	DIR			*open_dir(const std::string& path) const;
-	bool 		tray_open_dir(const std::string& path) const;
+	bool 		try_open_dir(const std::string& path) const;
 
 	/* Returns a file path string to a specified path */
 	void		get_paths_files(const std::string& path,
@@ -139,6 +143,13 @@ public:
 										const std::set<std::string>& ignore,
 										std::map<std::string, f_info>& map,
 										char fl) const;
+	void		get_finfo(	const std::vector<std::string>& src_files,
+							const std::set<std::string>& ignore,
+							std::map<std::string, f_info>& map) const;
+
+	void		get_finfo_o(const std::vector<std::string>& src_files,
+							const std::string& obj,
+							std::map<std::string, f_info>& map) const;
 
 	TYPE_FILE	get_filetype(mode_t mode) const;
 
@@ -146,7 +157,6 @@ public:
 							const mode_t mode) const;
 
 	void		change_dir(const std::string& path) const;
-
 
 private:
 	inline bool	is_dots(char *name) const;

@@ -5,32 +5,61 @@
 #include <time.h>
 #include <stdio.h>
 
-
 using namespace std;
 
-class InitBuild
+t_param parse_param(int argc, char **argv)
 {
-	File_handling fh;
-public:
-	
-};
+	t_param param;
+	bzero(&param, sizeof(t_param));
+	if (argc == 1)
+		return (param);
+	int i = 0;
+	while (++i < argc)
+	{
+		if (strcmp(argv[i], "-re") == 0)
+			param.re = true;
+		else if (strcmp(argv[i], "-clear") == 0 || strcmp(argv[i], "-c") == 0) 
+			param.clear = true;
+		else if (strcmp(argv[i], "-clearall") == 0 || strcmp(argv[i], "-ca") == 0)
+			param.ca = true;
+		else if (strcmp(argv[i], "-show") == 0 || strcmp(argv[i], "-s") == 0)
+			param.show = true;
+		else
+			error_processing(WRONG_KEY, argv[i]);
+	}
+	return (param);
+}
 
+// int main(int argc, char **argv)
 int main()
 {
-	File_handling h;
-	Array ar;
-	Speed sp;
-	string file("../");
-	char pwd[1024];
-	getcwd(pwd, 1024);
-	string includes;
-	h.get_paths_files("42sh/Libft/includes", pwd, includes);
-	Builder bd(pwd, includes);
+	t_param pr;
+	buildlist bl;
 
-	sp.init_point();
-	bd.set_buildlist();
-	bd.make();
-	sp.print_mksec("");
+	pr.show = true;
+
+	bl.sources = "42sh/Libft/srcs";
+	bl.includes = "42sh/Libft/includes";
+	bl.src_ignore_files.insert("ft_strlen.s");
+	bl.compile_obj = "gcc -g -c";
+	bl.compile_program = "ar rc libft.a";
+	bl.out_dir = "lib/";
+
+	Builder build(bl, pr);
+	build.make();
+
+	// pr = parser_argv(argc, argv);
+	// if (argc == 0)
+	// {
+	// 	// vector<buildlist> tasks = Parser();
+	// 	for (const auto& task : tasks)
+	// 	{
+	// 		Builder bild(task, pr);
+	// 	}
+
+	// }
+
+
 
 
 	// std::vector<std::string> vec;

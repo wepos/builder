@@ -1,28 +1,11 @@
 #include "build.h"
 
-void	Builder::set_buildlist()
+void 	Builder::make()
 {
-	build.sources = "42sh/Libft/srcs";
-	build.src_ignore_files.insert("ft_strlen.s");
-	build.includes = "42sh/Libft/includes";
-	build.compile_obj = "-g -c -J4";
-	build.compile_program = "ar rc libft.a";
-	filecompile = build.compile_obj + " ";
-	progcompile = build.compile_program + " ";
-	build.out_dir = "lib/";
-}
-
-void Builder::make()
-{
-	std::string object(OBJ);
-	fh.get_recursion_finfo_dir(build.sources, build.src_ignore_files, src, 's');
-	src[build.sources] = {"", 0, 0, TYPE_FILE::DIRICTORY};
-	fh.get_recursion_finfo_dir(object + build.sources, build.src_ignore_files, obj, 'o');
-	
 	for (const auto& [key, val] : src)
 	{
 		if (!obj.count(key) && val.type == TYPE_FILE::DIRICTORY)
-			fh.make_dir(std::string(OBJ) + key, MOD);
+			fh.make_dir(object + key, MOD);
 		if ((!obj.count(key) && val.type != TYPE_FILE::DIRICTORY))
 			make_task(key, val);
 		else if ((val.type != TYPE_FILE::DIRICTORY) && obj.at(key).mtime < val.mtime)
@@ -34,32 +17,29 @@ void Builder::make()
 
 void	Builder::make_program()
 {
-	std::string back("");
-	if (build.out_dir.size())
-	{
-		back = "../";
-		fh.make_dir(build.out_dir, MOD);		// 
-		fh.change_dir(build.out_dir);
-	}
-	for (const auto& [key, val] : src)
-	{
-		if (val.type == TYPE_FILE::REGULAR)
-			progcompile += back + OBJ + key + ".o ";
-	}
-	std::cout << progcompile << std::endl;
-	system(progcompile.c_str());
-	if (build.out_dir.size())
+	if (out_dir.size())
+		fh.change_dir(out_dir);
+	std::string comand = prog_compile;
+	for (const auto& [key, val] : obj)
+		comand += back + object + key + val.extens + ' ';
+	system(comand.c_str());
+	if (param.show)
+		std::cout << prog_compile << std::endl;
+		for (const auto& [key, val] : obj)
+			std::cout << '\t' << back + object + key + val.extens << std::endl;
+	if (out_dir.size())
 		fh.change_dir(work_space);
 }
 
 void	Builder::make_task(const std::string& key, const f_info& val)
 {
-	fl = 1;
+	fl = true;
 	std::string objpath; 
-	objpath.resize(1024);
-	objpath = work_space + "/" + OBJ + std::string(begin(key), begin(key) + val.path);
+	objpath.resize(KBIT);
+	objpath = work_space + "/" + object + std::string(begin(key), begin(key) + val.path);
 	fh.change_dir(objpath);
-	std::cout << filecompile + work_space + "/" + key + val.extens + "\n" + includes + "\n" << std::endl;
-	system((filecompile + work_space + "/" + key + val.extens + "\t" + includes).c_str());
+	system((file_compile + work_space + "/" + key + val.extens + includes).c_str());
+	if (param.show)
+		std::cout << file_compile + work_space + "/" + key + val.extens + "\n\t" + includes + "\n" << std::endl;
 	fh.change_dir(work_space);
 }
