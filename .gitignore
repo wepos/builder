@@ -4,3 +4,7 @@ test*
 test*.*
 *.o
 ojects
+a.out
+info.plist
+README.md
+bild_file

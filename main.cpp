@@ -37,7 +37,6 @@ struct buildlist
 	std::string fl_file;
 	std::string fl_program;
 	std::string out_dir;
-
 };
 
 
