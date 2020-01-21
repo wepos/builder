@@ -20,17 +20,19 @@ static void error_processing(
 		case BAD_IFSTREAM:
 			print_err_message("Bad file stream", message); break;
 		case FAIL_OPEN_DIR:
-			print_err_message("Fail to open dir", message); break;
+			print_err_message("Failed to open directory", message); break;
 		case UNKNOWN_TYPE:
 			print_err_message("unknown type"); break;
 		case MAKE_DIR:
-			print_err_message("Make dir", message); break;
+			print_err_message("Failed make directory", message); break;
+		case CHANGE_DIR:
+			print_err_message("Fail directory change", message); break;
 	}
 	std::cout << RED << "ERROR CODE: " << code << std::endl;
 	exit(code);
 }
 
-TYPE_FILE		File_handling::get_filetype(mode_t mode) const
+TYPE_FILE	File_handling::get_filetype(mode_t mode) const
 {
 	mode &= S_IFMT;
 	switch (mode)
@@ -54,29 +56,6 @@ TYPE_FILE		File_handling::get_filetype(mode_t mode) const
 		error_processing(UNKNOWN_TYPE);
 	}
 }
-
-
-void File_handling::make_dir(const std::string& name, const mode_t mode)
-{
-	char *ptr = strtok((char*)name.c_str(), "/");;
-	char d[1000];
-	bzero(d, 1000);
-	int n = 0;
-	int c = 0;
-	while(ptr != NULL)
-	{
-		int len = strlen(ptr);
-		memmove(d + n, ptr, len);
-		d[len + n] = '/';
-		if (mkdir(d, mode) != -1)
-			++c;
-		n += len + 1;
-		ptr = strtok(NULL, "/");
-	}
-	if (!c)
-		error_processing(MAKE_DIR, d);
-}
-
 
 std::ofstream File_handling::of_stream_file(
 	const std::string& file,
@@ -144,7 +123,8 @@ std::vector<std::string> File_handling::get_lines(
 	return (res);
 }
 
-FILE* File_handling::get_c_stream(const std::string& file) const
+FILE* 	File_handling::get_c_stream(
+	const std::string& file) const
 {
 	FILE *stream = fopen(file.c_str(), "r");
 	if (stream == 0)
@@ -170,7 +150,8 @@ std::vector<std::string> File_handling::get_lines_c_str(
 }
 
 
-DIR		*File_handling::open_dir(const std::string& path) const
+DIR		*File_handling::open_dir(
+	const std::string& path) const
 {
 	DIR	*dir = opendir(path.c_str());
 
@@ -203,13 +184,39 @@ std::vector<std::string> File_handling::get_files_dir(
 	return (res);
 }
 
+void	File_handling::get_paths_files(
+	const std::string& path,
+	const std::string& worc_space,
+	std::string& paths) const
+{
+	DIR				*dir = opendir(path.c_str());
+	struct dirent 	*entry;
+	struct stat		st;
+	int c = 0;
+	if (!paths.size())
+		paths = std::string("-I") + worc_space + "/" + path ;
+	while ((entry = readdir(dir)) != 0)
+	{
+		if (++c < 3)
+			continue ;
+		std::string tmp(path + "/" + entry->d_name);
+		lstat(tmp.c_str(), &st);
+		if (get_filetype(st.st_mode) == TYPE_FILE::DIRICTORY)
+		{
+			get_paths_files(tmp, worc_space, paths);
+			paths += std::string(" -I") + worc_space + "/" + tmp;
+		}
+	}
+	closedir(dir);
+}
 
-void File_handling::get_recursion_files_dir(
+
+void 	File_handling::get_recursion_files_dir(
 	const std::string& path,
 	std::vector<std::string>&vec) const
 {
-	DIR	*dir = open_dir(path.c_str());
-	struct dirent *entry;
+	DIR				*dir = open_dir(path.c_str());
+	struct dirent 	*entry;
 	struct stat		st;
 
 	while ((entry = readdir(dir)) != 0)
@@ -249,7 +256,7 @@ std::map<std::string, struct stat> File_handling::get_fstat_dir(
 	return (res);
 }
 
-void File_handling::get_fstat_dir(
+void 	File_handling::get_fstat_dir(
 	const std::string& path,
 	std::map<std::string, struct stat>& m) const
 {
@@ -272,7 +279,7 @@ void File_handling::get_fstat_dir(
 	closedir(dir);
 }
 
-bool File_handling::tray_open_dir(
+bool 	File_handling::tray_open_dir(
 	const std::string& path) const
 {
 	DIR	*dir = opendir(path.c_str());
@@ -287,12 +294,12 @@ void	File_handling::get_recursion_fstat_dir(
 	const std::string& path,
 	std::map<std::string, struct stat>& map) const
 {
-	DIR	*dir = opendir(path.c_str());
+	DIR				*dir = opendir(path.c_str());
 	if (dir == 0)
 		return ;
 	struct dirent	*entry;
 	struct stat		st;
-	const size_t size_st= sizeof(struct stat);
+	const size_t 	size_st = sizeof(struct stat);
 
 	while ((entry = readdir(dir)))
 	{
@@ -310,6 +317,7 @@ void	File_handling::get_recursion_fstat_dir(
 
 void	File_handling::get_recursion_finfo_dir(
 	const std::string& path,
+	const std::set<std::string>& ignore,
 	std::map<std::string, f_info>& map,
 	char fl) const
 {
@@ -324,17 +332,27 @@ void	File_handling::get_recursion_finfo_dir(
 	{
 		if (++c < 3)
 			continue ;
+		if (fl == 's'
+			&& ignore.find(std::string(entry->d_name)) != ignore.end())
+				return ;
 		std::string tmp(path + "/" + entry->d_name);
 		struct stat		cpy;
 		lstat(tmp.c_str(), &st);
 		if ((t = get_filetype(st.st_mode)) == TYPE_FILE::DIRICTORY && tray_open_dir(tmp))
-			get_recursion_finfo_dir(tmp, map, fl);
+			get_recursion_finfo_dir(tmp, ignore, map, fl);
 		if (fl == 's')
 			set_map(map, tmp, &st, t);
 		else
 			set_map_o(map, tmp, &st, t);
 	}
 	closedir(dir);
+}
+
+inline bool	drop(const std::set<std::string>& ignore, const char *name_file)
+{
+	if (ignore.count(std::string(name_file)))
+		return (true);
+	return (false);
 }
 
 void	File_handling::set_map_o(
@@ -355,6 +373,7 @@ void	File_handling::set_map_o(
 	val.extens = std::string(file.begin() + dot, file.end());
 	val.mtime = st->st_mtimespec.tv_sec;
 	val.type = type;
+	val.path = file.find_last_of('/', file.size());
 	map[std::string(file.begin() + slash, file.begin() + dot)] = val;	
 }
 
@@ -375,5 +394,37 @@ void 	File_handling::set_map(
 	val.extens = std::string(file.begin() + dot, file.end());
 	val.mtime = st->st_mtimespec.tv_sec;
 	val.type = type;
+	val.path = file.find_last_of('/', file.size());
 	map[std::string(file.begin(), file.begin() + dot)] = val;
+}
+
+void	 File_handling::make_dir(
+	const std::string& name,
+	const mode_t mode) const
+{
+	std::string cpy = name;
+	char *ptr = strtok((char*)cpy.c_str(), "/");;
+	char d[1000];
+	bzero(d, 1000);
+	int n = 0;
+	int c = 0;
+	while(ptr != NULL)
+	{
+		int len = strlen(ptr);
+		memmove(d + n, ptr, len);
+		d[len + n] = '/';
+		if (mkdir(d, mode) != -1)
+			++c;
+		n += len + 1;
+		ptr = strtok(NULL, "/");
+	}
+	// if (!c)
+	// 	error_processing(MAKE_DIR, d);
+}
+
+void	File_handling::change_dir(
+	const std::string& path) const
+{
+	if (chdir(path.c_str()) == -1)
+		error_processing(CHANGE_DIR, path);
 }
