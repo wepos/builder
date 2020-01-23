@@ -3,7 +3,7 @@
 #include <time.h>
 #include <stdio.h>
 
-#define OBJ "object/"
+#define OBJ "objects/"
 #define MOD (mode_t)0777
 
 struct buildlist
@@ -43,10 +43,10 @@ class Builder
 public:
 	Builder(const buildlist& task, t_param& pr) : object(OBJ)
 	{
+		param = pr;
 		src[task.sources] = {"", 0, 0, TYPE_FILE::DIRICTORY};
-		if (!(fh.try_open_dir(task.sources)))
-			error_processing(FAIL_OPEN_DIR, task.sources);
-		fh.get_recursion_finfo_dir(task.sources, task.src_ignore_files, src, 's');
+		if (task.sources.size())
+			fh.get_recursion_finfo_dir(task.sources, task.src_ignore_files, src, 's');
 		fh.get_finfo(task.src_files, task.src_ignore_files, src);
 		fh.get_recursion_finfo_dir(object + task.sources, std::set<std::string>(), obj, 'o');
 		fh.get_finfo_o(task.src_files, object, obj);
@@ -60,15 +60,16 @@ public:
 		char pwd[KBIT];
 		getcwd(pwd, KBIT);
 		work_space = pwd;
-		fh.get_paths_files(task.includes, work_space, includes);
+		if (task.includes.size())
+			fh.get_paths_files(task.includes, work_space, includes);
 		prog_compile = task.compile_program + " ";
 		file_compile = task.compile_obj + " ";
-		param = pr;
 	};
 
 	void	make();
 
 private:
+	void	make_param();
 	void	make_program();
 	void	make_task(	const std::string& key,
 						const f_info& val);

@@ -1,6 +1,4 @@
-#include "parser.h"
-#include "file_handling.h"
-#include <sstream>
+#include "parser_buildlist.h"
 
 std::vector<buildlist>		Parser::get_links()
 {
@@ -111,7 +109,7 @@ int							Parser::fill_node(char *str, buildlist *node, int res)
 	return (1);
 }
 
-int							Parser::parse_blocks(std::vector<string>& block, buildlist *node)
+int							Parser::parse_blocks(std::vector<std::string>& block, buildlist *node)
 {
 	char				*spl;
 	std::string			str;
@@ -140,7 +138,7 @@ int							Parser::parse_blocks(std::vector<string>& block, buildlist *node)
 void						Parser::parse_file()
 {
 	std::vector<std::string>	words;
-	std::vector<string>			block;
+	std::vector<std::string>	block;
 	buildlist					node;
 
 	words = get_setting_words();	
@@ -155,16 +153,14 @@ void						Parser::parse_file()
 			links.insert(links.end(), node);
 			block.clear();
 		}
-		else
-			i++;	
 	}
 }
 
-int		main()
-{
-	Parser	parser;
+// int		main()
+// {
+// 	Parser	parser_buildlist;
 
-	parser.parse_file();
-	printf("HUT");
-	return (1);
-}
+// 	parser_buildlist.parse_file();
+// 	printf("HUT");
+// 	return (1);
+// }

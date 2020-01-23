@@ -20,22 +20,22 @@ public:
 		}
 	}
 	void	print_vec(vector<string> arr){
-		for (int i = 0; i < arr.size(); i++){
+		for (size_t i = 0; i < arr.size(); i++){
 			printf("%s ", arr[i].c_str());
 		}
 	}
 	void	print_vec(vector<int> arr){
-		for (int i = 0; i < arr.size(); i++){
+		for (size_t i = 0; i < arr.size(); i++){
 			printf("%d ", arr[i]);
 		}
 	}
 	void	println_vec(vector<string> arr){
-		for (int i = 0; i < arr.size(); i++){
+		for (size_t i = 0; i < arr.size(); i++){
 			printf("%s\n", arr[i].c_str());
 		}
 	}
 	void	println_vec(vector<int> arr){
-		for (int i = 0; i < arr.size(); i++){
+		for (size_t i = 0; i < arr.size(); i++){
 			printf("%d\n", arr[i]);
 		}
 	}

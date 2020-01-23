@@ -1,26 +1,23 @@
 /* ************************************************************************** */
 /*                                                                            */
 /*                                                        :::      ::::::::   */
-/*   parser.h                                           :+:      :+:    :+:   */
+/*   parser_buildlist.h                                           :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: fnancy <fnancy@student.42.fr>              +#+  +:+       +#+        */
+/*   By: gdaemoni <gdaemoni@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2020/01/19 13:54:20 by fnancy            #+#    #+#             */
-/*   Updated: 2020/01/21 15:00:15 by fnancy           ###   ########.fr       */
+/*   Updated: 2020/01/21 17:34:17 by gdaemoni         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #pragma once
 
-#include <string>
+#include "file_handling.h"
+#include <unistd.h>
+#include "build.h"
 #include <vector>
 
-#include <unistd.h>
-#include "file_handling.h"
-#include "build.h"
-
-#define NAME_SET	"/settings"
-
+#define NAME_SET		"/settings"
 #define	SOURCE			"SOURCE"
 #define	COMPILED_FILES	"COMPILED_FILES"
 #define	IGNORE_FILE		"IGNORE_FILE"
@@ -34,19 +31,17 @@ enum	Keys{
 	COMPILER_OBJ_I = 4, COMPILER_PR_I = 5, OUTPUT_DIR_I = 6
 };
 
-using namespace std;
-
 class Parser
 {
 private:
 	std::vector<buildlist>		links;
 	std::vector<std::string>	get_setting_words();
-	std::vector<string>			get_blocks();
+	std::vector<std::string>	get_blocks();
 	void						bzero_node(buildlist *node);
 	int							check_syntax(std::string& str, char *sp);
 	int 						check_keywords(char *str);
 	int							fill_node(char *str, buildlist *node, int res);
-	int							parse_blocks(std::vector<string>& block, buildlist *node);
+	int							parse_blocks(std::vector<std::string>& block, buildlist *node);
 
 public:
     std::vector<buildlist>		get_links();

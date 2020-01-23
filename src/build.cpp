@@ -2,6 +2,7 @@
 
 void 	Builder::make()
 {
+	make_param();
 	for (const auto& [key, val] : src)
 	{
 		if (!obj.count(key) && val.type == TYPE_FILE::DIRICTORY)
@@ -15,18 +16,45 @@ void 	Builder::make()
 		make_program();
 }
 
+void	Builder::make_param()
+{
+	if (param.re)
+		rm_rf(OBJ, param.show);
+	else if (param.clear)
+	{
+		rm_rf(OBJ, param.show);
+		exit(0);
+	}
+}
+
+void	rm_rf(const char *dir, bool show)
+{
+	std::string cmd;
+
+	cmd += std::string("rm -rf ") + dir;
+	if (system(cmd.c_str()))
+		error_processing(SYSERROR, cmd);
+	if (show)
+		std::cout << cmd << std::endl;
+}
+
 void	Builder::make_program()
 {
 	if (out_dir.size())
 		fh.change_dir(out_dir);
-	std::string comand = prog_compile;
-	for (const auto& [key, val] : obj)
-		comand += back + object + key + val.extens + ' ';
-	system(comand.c_str());
+	std::string comand = prog_compile + ' ';
+	for (const auto& [key, val] : src)
+		if (val.type == TYPE_FILE::REGULAR)
+			comand += work_space + '/' + object + key + ".o ";
+	if (system(comand.c_str()) == -1)
+		error_processing(SYSERROR, comand);
 	if (param.show)
-		std::cout << prog_compile << std::endl;
-		for (const auto& [key, val] : obj)
-			std::cout << '\t' << back + object + key + val.extens << std::endl;
+	{
+		std::cout << "\n\n" << prog_compile << " " << includes << std::endl;
+		for (const auto& [key, val] : src)
+			if (val.type == TYPE_FILE::REGULAR)
+				std::cout << '\t' << work_space + '/' + object + key + ".o" << std::endl;
+	}
 	if (out_dir.size())
 		fh.change_dir(work_space);
 }
@@ -38,7 +66,9 @@ void	Builder::make_task(const std::string& key, const f_info& val)
 	objpath.resize(KBIT);
 	objpath = work_space + "/" + object + std::string(begin(key), begin(key) + val.path);
 	fh.change_dir(objpath);
-	system((file_compile + work_space + "/" + key + val.extens + includes).c_str());
+	std::string tmp = file_compile + work_space + "/" + key + val.extens + includes;
+	if (system(tmp.c_str()) == -1)
+		error_processing(SYSERROR, tmp);
 	if (param.show)
 		std::cout << file_compile + work_space + "/" + key + val.extens + "\n\t" + includes + "\n" << std::endl;
 	fh.change_dir(work_space);

@@ -1,18 +1,19 @@
 {
-	SOURCE = Libft/src;
-	COMPILED_FILES = pizda.c iii.c;
-	IGNORE_FILE = ;
-	INCLUDES_DIR = Libft/includes;
-	COMPILER_OBJ = gcc -g;
-	COMPILER_PR = ar rc libft.a;
-	OUTPUT_DIR = "lib/";
-}
-{
-	SOURCE = sources;
+	SOURCE = 42sh/Libft/srcs;
 	COMPILED_FILES = ;
-	IGNORE_FILE = ;
-	INCLUDES_DIR = includes;
-	COMPILER_OBJ = gcc -g -Llib -ILibft/includes;
-	COMPILER_PR = gcc -g -o 42sh;
+	IGNORE_FILE = ft_strlen.s;
+	INCLUDES_DIR = 42sh/Libft/includes;
+	COMPILER_OBJ = gcc -g -c;
+	COMPILER_PR = ar rc libft.a;
+	OUTPUT_DIR = lib/;
+}
+
+{
+	SOURCE = 42sh/sources;
+	COMPILED_FILES = ;
+	IGNORE_FILE = .DS_Store math_document.md;
+	INCLUDES_DIR = 42sh/includes;
+	COMPILER_OBJ = gcc -g -c -I/Users/gdaemoni/Desktop/build/42sh/Libft/includes
+	COMPILER_PR = gcc -g -L/Users/gdaemoni/Desktop/build/lib -lft -o bash;
 	OUTPUT_DIR = ;
 }

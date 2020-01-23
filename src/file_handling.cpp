@@ -1,7 +1,9 @@
 #include "file_handling.h"
 
 
-void print_err_message(const std::string& err, const std::string& message="")
+void print_err_message(
+	const std::string& err,
+	const std::string& message="")
 {
 	std::cout << RED << err << ": " << message << std::endl;
 }
@@ -32,33 +34,35 @@ void error_processing(
 			print_err_message("It was not possible to obtain information about the file", message); break;
 		case WRONG_KEY:
 			print_err_message("Wrong key", message); break;
+		case SYSERROR:
+			print_err_message("Couldn't execute the command", message); break;
 	}
-	std::cout << RED << "errno: " << errno << std::endl;
+	std::cout << RED << "ERROR CODE " << code << std::endl;
 	exit(code);
 }
 
-TYPE_FILE	File_handling::get_filetype(mode_t mode) const
+TYPE_FILE	File_handling::get_filetype(
+	mode_t mode) const
 {
 	mode &= S_IFMT;
 	switch (mode)
 	{
-	case S_IFIFO:
-		return (FIFO);
-	case S_IFCHR:
-		return (CHARTER);
-	case S_IFDIR:
-		return (DIRICTORY);
-	case S_IFBLK:
-		return (BLOK);
-	case S_IFREG:
-		return (REGULAR);
-	case S_IFLNK:
-		return (LINK);
-	case S_IFSOCK:
-		return (SOCKET);
-	default:
-		return (NO_ACCESS);
-		error_processing(UNKNOWN_TYPE);
+		case S_IFIFO:
+			return (FIFO);
+		case S_IFCHR:
+			return (CHARTER);
+		case S_IFDIR:
+			return (DIRICTORY);
+		case S_IFBLK:
+			return (BLOK);
+		case S_IFREG:
+			return (REGULAR);
+		case S_IFLNK:
+			return (LINK);
+		case S_IFSOCK:
+			return (SOCKET);
+		default:
+			return (NO_ACCESS);
 	}
 }
 
@@ -138,8 +142,7 @@ FILE* 	File_handling::get_c_stream(
 }
 
 std::vector<std::string> File_handling::get_lines_c_str(
-	const std::string& file,
-	const char delim) const
+	const std::string& file) const
 {
 	FILE *stream = get_c_stream(file);
 	size_t len = 0;
@@ -339,9 +342,8 @@ void	File_handling::get_recursion_finfo_dir(
 			continue ;
 		if (fl == 's'
 			&& ignore.find(std::string(entry->d_name)) != ignore.end())
-				return ;
+				continue ;
 		std::string tmp(path + "/" + entry->d_name);
-		struct stat		cpy;
 		lstat(tmp.c_str(), &st);
 		if ((t = get_filetype(st.st_mode)) == TYPE_FILE::DIRICTORY && try_open_dir(tmp))
 			get_recursion_finfo_dir(tmp, ignore, map, fl);
@@ -462,7 +464,7 @@ void		File_handling::get_finfo_o(
 	for (const auto& file : src_files)
 	{
 		if (lstat((obj + file).c_str(), &st) == -1)
-			error_processing(LSTAT, file);
+			continue ;
 		set_map_o(map, file, &st, TYPE_FILE::REGULAR);
 	}
 }

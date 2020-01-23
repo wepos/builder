@@ -28,7 +28,8 @@ enum ERRORS {	 		// error code
 	MAKE_DIR,
 	CHANGE_DIR,
 	LSTAT,
-	WRONG_KEY
+	WRONG_KEY,
+	SYSERROR
 };
 
 enum TYPE_FILE {
@@ -107,8 +108,7 @@ public:
 	FILE*		 get_c_stream(const std::string& file) const;
 	
 	/* return vector lines min time 209025 mks for 134.MB WIN!!! */
-	std::vector<std::string> get_lines_c_str(	const std::string& file,
-												const char delim) const;
+	std::vector<std::string> get_lines_c_str(const std::string& file) const;
 
 	/*
 		unsafe function.
