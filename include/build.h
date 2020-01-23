@@ -38,11 +38,12 @@ class Builder
 	std::string includes;
 	t_param param;
 	File_handling fh;
-	bool fl = false;		// flag that changes the state if at least one file was recompiled
+	bool fl;  // flag that changes the state if at least one file was recompiled
 	
 public:
 	Builder(const buildlist& task, t_param& pr) : object(OBJ)
 	{
+		fl = false;
 		param = pr;
 		src[task.sources] = {"", 0, 0, TYPE_FILE::DIRICTORY};
 		if (task.sources.size())

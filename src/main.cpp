@@ -1,7 +1,5 @@
 #include "parser_buildlist.h"
 #include "build.h"
-#include "arr.h"
-#include "speed_test.h"
 #include <time.h>
 #include <stdio.h>
 

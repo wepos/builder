@@ -158,6 +158,8 @@ public:
 
 	void		change_dir(const std::string& path) const;
 
+	void		rm_rf(const char *dir, bool show) const;
+
 private:
 	inline bool	is_dots(char *name) const;
 

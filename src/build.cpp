@@ -19,23 +19,12 @@ void 	Builder::make()
 void	Builder::make_param()
 {
 	if (param.re)
-		rm_rf(OBJ, param.show);
+		fh.rm_rf(OBJ, param.show);
 	else if (param.clear)
 	{
-		rm_rf(OBJ, param.show);
+		fh.rm_rf(OBJ, param.show);
 		exit(0);
 	}
-}
-
-void	rm_rf(const char *dir, bool show)
-{
-	std::string cmd;
-
-	cmd += std::string("rm -rf ") + dir;
-	if (system(cmd.c_str()))
-		error_processing(SYSERROR, cmd);
-	if (show)
-		std::cout << cmd << std::endl;
 }
 
 void	Builder::make_program()

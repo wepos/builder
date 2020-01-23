@@ -468,3 +468,15 @@ void		File_handling::get_finfo_o(
 		set_map_o(map, file, &st, TYPE_FILE::REGULAR);
 	}
 }
+void	File_handling::rm_rf(
+	const char *dir,
+	bool show) const
+{
+	std::string cmd;
+
+	cmd += std::string("rm -rf ") + dir;
+	if (system(cmd.c_str()))
+		error_processing(SYSERROR, cmd);
+	if (show)
+		std::cout << cmd << std::endl;
+}
